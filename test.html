@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Detection Web App</title>
+</head>
+<body>
+  <h1>Voice Detection Web App</h1>
+  <button onclick="startListening()">Start Listening</button>
+  <p id="result">Detected Speech: <span id="speechText"></span></p>
+
+  <script>
+    // Check for Web Speech API support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Speech Recognition API is not supported in this browser.");
+    } else {
+      const recognition = new SpeechRecognition();
+
+      recognition.onresult = (event) => {
+        const speechResult = event.results[0][0].transcript;
+        document.getElementById('speechText').innerText = speechResult;
+        sendDataToESP32(speechResult); // Send the speech data to ESP32
+      };
+
+      function startListening() {
+        recognition.start();
+      }
+    }
+
+    // Function to send data to ESP32
+    function sendDataToESP32(text) {
+      fetch('http://10.96.80.31/sendData', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      })
+      .then(response => response.json())
+      .then(data => console.log('ESP32 response:', data))
+      .catch(error => console.error('Error:', error));
+    }
+  </script>
+</body>
+</html>
