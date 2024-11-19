@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice to Firebase</title>
+  
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    // Import Firebase functions
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_IzVVLuh6hax0F77wZd4J2z9mJV4HaRs",
+      authDomain: "iotlab9-874f2.firebaseapp.com",
+      databaseURL: "https://iotlab9-874f2-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "iotlab9-874f2",
+      storageBucket: "iotlab9-874f2.appspot.com",
+      messagingSenderId: "719142350411",
+      appId: "1:719142350411:web:84216b0715586cda98e7ce"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let recognition; // Declare recognition variable
+
+    // Function to start voice recognition
+    window.startVoiceRecognition = function() {
+      if (!recognition) {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        
+        recognition.onresult = (event) => {
+          const command = event.results[0][0].transcript;
+          document.getElementById("command").innerText = `Command: ${command}`;
+
+          // Send recognized command to Firebase Realtime Database
+          set(ref(db, 'voiceCommand'), command)
+            .then(() => {
+              console.log("Command sent to Firebase");
+            })
+            .catch((error) => {
+              console.error("Error sending command to Firebase", error);
+            });
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error", event.error);
+        };
+      }
+
+      recognition.start();
+      console.log("Voice recognition started");
+    };
+
+    // Function to stop voice recognition
+    window.stopVoiceRecognition = function() {
+      if (recognition) {
+        recognition.stop();
+        console.log("Voice recognition stopped");
+      }
+    };
+  </script>
+</head>
+<body>
+  <h1>Send Voice Command to ESP32</h1>
+  <button onclick="startVoiceRecognition()">Start Speaking</button>
+  <button onclick="stopVoiceRecognition()">Stop Speaking</button>
+  <p id="command"></p>
+</body>
+</html>
