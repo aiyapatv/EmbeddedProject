@@ -31,49 +31,49 @@
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
 
-      let recognition; // Declare recognition variable
+      // let recognition; // Declare recognition variable
 
       // Function to start voice recognition
-      window.startVoiceRecognition = function () {
-        if (!recognition) {
-          recognition = new (window.SpeechRecognition ||
-            window.webkitSpeechRecognition)();
+      // window.startVoiceRecognition = function () {
+      //   if (!recognition) {
+      //     recognition = new (window.SpeechRecognition ||
+      //       window.webkitSpeechRecognition)();
 
-          recognition.onresult = (event) => {
-            const command = event.results[0][0].transcript;
-            document.getElementById(
-              "command"
-            ).innerText = `Command: ${command}`;
+      //     recognition.onresult = (event) => {
+      //       const command = event.results[0][0].transcript;
+      //       document.getElementById(
+      //         "command"
+      //       ).innerText = `Command: ${command}`;
 
-            // Send recognized command to Firebase Realtime Database
-            set(ref(db, "voiceCommand"), command)
-              .then(() => {
-                console.log("Command sent to Firebase");
-              })
-              .catch((error) => {
-                console.error("Error sending command to Firebase", error);
-              });
-          };
+      //       // Send recognized command to Firebase Realtime Database
+      //       set(ref(db, "voiceCommand"), command)
+      //         .then(() => {
+      //           console.log("Command sent to Firebase");
+      //         })
+      //         .catch((error) => {
+      //           console.error("Error sending command to Firebase", error);
+      //         });
+      //     };
 
-          recognition.onerror = (event) => {
-            console.error("Speech recognition error", event.error);
-          };
-        }
+      //     recognition.onerror = (event) => {
+      //       console.error("Speech recognition error", event.error);
+      //     };
+      //   }
 
-        recognition.start();
-        console.log("Voice recognition started");
-      };
+      //   recognition.start();
+      //   console.log("Voice recognition started");
+      // };
 
-      // Function to stop voice recognition
-      window.stopVoiceRecognition = function () {
-        if (recognition) {
-          recognition.stop();
-          console.log("Voice recognition stopped");
-        }
-      };
+      // // Function to stop voice recognition
+      // window.stopVoiceRecognition = function () {
+      //   if (recognition) {
+      //     recognition.stop();
+      //     console.log("Voice recognition stopped");
+      //   }
+      // };
 
       window.lightOn = function () {
-        set(ref(db, "voiceCommand"), "on")
+        set(ref(db, "lightStatus"), "ON")
           .then(() => {
             console.log("Command sent to Firebase");
           })
@@ -83,7 +83,7 @@
       };
 
       window.lightOff = function () {
-        set(ref(db, "voiceCommand"), "off")
+        set(ref(db, "lightStatus"), "OFF")
           .then(() => {
             console.log("Command sent to Firebase");
           })
@@ -91,12 +91,6 @@
             console.error("Error sending command to Firebase", error);
           });
       };
-
-      const commandRef = ref(db, "voiceCommand"); // Firebase path to monitor
-      onValue(commandRef, (snapshot) => {
-        const command = snapshot.val();
-        document.getElementById("command").innerText = `Command: ${command}`;
-      });
 
       const statusRef = ref(db, "lightStatus"); // Firebase path to monitor
       onValue(statusRef, (snapshot) => {
@@ -238,8 +232,6 @@
   </head>
   <body>
     <h1>Send Voice Command to ESP32</h1>
-    <button onclick="startVoiceRecognition()">Start Speaking</button>
-    <button onclick="stopVoiceRecognition()">Stop Speaking</button>
     <button onclick="lightOn()">On</button>
     <button onclick="lightOff()">Off</button>
     <button type="button" onclick="document.getElementById('leafUploader').click()">
@@ -247,7 +239,6 @@
     </button>
     <input type="file" accept="image/*" id="leafUploader" style="display: none;" onchange="captureLeafImage(event)" />
     <img id="leafPicture" style="display: none" alt="Uploaded Leaf Image" />
-    <p id="command">Command:</p>
     <p id="status">Status:</p>
     <p id="leafState">Leaf Health:</p> <p id="confidence">Confidence: </p>
   </body>
