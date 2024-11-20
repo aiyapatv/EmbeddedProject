@@ -11,5 +11,8 @@
   "dependencies": {
     "@tensorflow/tfjs": "^4.22.0",
     "firebase": "^11.0.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.15"
   }
 }

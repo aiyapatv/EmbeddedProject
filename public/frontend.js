@@ -89,3 +89,36 @@ async function processLeafHealth(imageData) {
     )}%`;
   };
 }
+export function togglePlantType() {
+  const heading = document.getElementById("plantTypeHeading");
+  const image = document.getElementById("plantImage");
+
+  if (heading.innerText === "Decoration") {
+    heading.innerText = "Vegetable";
+    image.src = "../image/vegetable.jpg";
+  } else {
+    heading.innerText = "Decoration";
+    image.src = "../image/decoration.jpg";
+  }
+}
+export function toggleEdit() {
+  const plantName = document.getElementById('plantName');
+  const button = document.getElementById('editButton');
+  
+  if (button.innerText === "Edit") {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = plantName.innerText;
+    plantName.innerHTML = '';  
+    plantName.appendChild(input);  
+    button.innerText = "Done";  
+  } else {
+    const input = plantName.querySelector('input');
+    plantName.innerHTML = input.value;  
+    button.innerText = "Edit"; 
+  }
+}
+
+
+
+

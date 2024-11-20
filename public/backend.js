@@ -64,30 +64,55 @@ const db = getDatabase(app);
 //   }
 // };
 
-const statusRef = ref(db, "lightStatus"); // Firebase path to monitor
+const statusRef = ref(db, "data/lightStatus"); // Firebase path to monitor
 onValue(statusRef, (snapshot) => {
   const status = snapshot.val();
   document.getElementById("status").innerText = `Status: ${status}`;
 });
 
-window.lightOn = function () {
-  set(ref(db, "lightStatus"), "ON")
-    .then(() => {
-      console.log("Command sent to Firebase");
-    })
-    .catch((error) => {
-      console.error("Error sending command to Firebase", error);
-    });
+// window.lightOn = function () {
+//   set(ref(db, "data/lightStatus"), "ON")
+//     .then(() => {
+//       console.log("Command sent to Firebase");
+//     })
+//     .catch((error) => {
+//       console.error("Error sending command to Firebase", error);
+//     });
+// };
+
+// window.lightOff = function () {
+//   set(ref(db, "data/lightStatus"), "OFF")
+//     .then(() => {
+//       console.log("Command sent to Firebase");
+//     })
+//     .catch((error) => {
+//       console.error("Error sending command to Firebase", error);
+//     });
+// };
+window.toggleLight = function () {
+  const button = document.getElementById("toggleButton");
+  
+  // Check current button text to decide the action
+  if (button.innerText === "On") {
+    set(ref(db, "data/lightStatus"), "ON")
+      .then(() => {
+        console.log("Command sent to Firebase: ON");
+        button.innerText = "Off";  // Change button text to "Off"
+      })
+      .catch((error) => {
+        console.error("Error sending command to Firebase", error);
+      });
+  } else {
+    set(ref(db, "data/lightStatus"), "OFF")
+      .then(() => {
+        console.log("Command sent to Firebase: OFF");
+        button.innerText = "On";  // Change button text to "On"
+      })
+      .catch((error) => {
+        console.error("Error sending command to Firebase", error);
+      });
+  }
 };
 
-window.lightOff = function () {
-  set(ref(db, "lightStatus"), "OFF")
-    .then(() => {
-      console.log("Command sent to Firebase");
-    })
-    .catch((error) => {
-      console.error("Error sending command to Firebase", error);
-    });
-};
 
 // Function to process leaf health using TensorFlow.js (open-source model)
