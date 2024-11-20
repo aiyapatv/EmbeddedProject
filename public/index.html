@@ -5,229 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Voice to Firebase</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script type="module">
-      // Import Firebase functions
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-      import {
-        getDatabase,
-        ref,
-        set,
-        onValue,
-      } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
-
-      // Your web app's Firebase configuration
-      const firebaseConfig = {
-        apiKey: "AIzaSyC_IzVVLuh6hax0F77wZd4J2z9mJV4HaRs",
-        authDomain: "iotlab9-874f2.firebaseapp.com",
-        databaseURL:
-          "https://iotlab9-874f2-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "iotlab9-874f2",
-        storageBucket: "iotlab9-874f2.appspot.com",
-        messagingSenderId: "719142350411",
-        appId: "1:719142350411:web:84216b0715586cda98e7ce",
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getDatabase(app);
-
-      // let recognition; // Declare recognition variable
-
-      // Function to start voice recognition
-      // window.startVoiceRecognition = function () {
-      //   if (!recognition) {
-      //     recognition = new (window.SpeechRecognition ||
-      //       window.webkitSpeechRecognition)();
-
-      //     recognition.onresult = (event) => {
-      //       const command = event.results[0][0].transcript;
-      //       document.getElementById(
-      //         "command"
-      //       ).innerText = `Command: ${command}`;
-
-      //       // Send recognized command to Firebase Realtime Database
-      //       set(ref(db, "voiceCommand"), command)
-      //         .then(() => {
-      //           console.log("Command sent to Firebase");
-      //         })
-      //         .catch((error) => {
-      //           console.error("Error sending command to Firebase", error);
-      //         });
-      //     };
-
-      //     recognition.onerror = (event) => {
-      //       console.error("Speech recognition error", event.error);
-      //     };
-      //   }
-
-      //   recognition.start();
-      //   console.log("Voice recognition started");
-      // };
-
-      // // Function to stop voice recognition
-      // window.stopVoiceRecognition = function () {
-      //   if (recognition) {
-      //     recognition.stop();
-      //     console.log("Voice recognition stopped");
-      //   }
-      // };
-
-      window.lightOn = function () {
-        set(ref(db, "lightStatus"), "ON")
-          .then(() => {
-            console.log("Command sent to Firebase");
-          })
-          .catch((error) => {
-            console.error("Error sending command to Firebase", error);
-          });
-      };
-
-      window.lightOff = function () {
-        set(ref(db, "lightStatus"), "OFF")
-          .then(() => {
-            console.log("Command sent to Firebase");
-          })
-          .catch((error) => {
-            console.error("Error sending command to Firebase", error);
-          });
-      };
-
-      const statusRef = ref(db, "lightStatus"); // Firebase path to monitor
-      onValue(statusRef, (snapshot) => {
-        const status = snapshot.val();
-        document.getElementById("status").innerText = `Status: ${status}`;
-      });
-
-      window.captureLeafImage = function (event) {
-        const input = event.target;
-        const capturedImage = document.getElementById("leafPicture");
-
-        if (input.files && input.files[0]) {
-          const reader = new FileReader();
-
-          // Read the image file as a data URL
-          reader.onload = function (e) {
-            const imageData = e.target.result;
-
-            // Display the uploaded image
-            capturedImage.src = imageData;
-            capturedImage.style.display = "block";
-
-            // Process the image using TensorFlow.js or another function
-            processLeafHealth(imageData);
-          };
-
-          reader.readAsDataURL(input.files[0]); // Trigger file reading
-        }
-      };
-
-      // Function to process leaf health using TensorFlow.js (open-source model)
-      async function processLeafHealth(imageData) {
-        const model = await tf.loadLayersModel("/model_architecture.json");
-
-        // Preprocess the image
-        const img = document.createElement("img");
-        img.src = imageData;
-        img.onload = async function () {
-          // Resize image to match model input size (1024x38 or whatever is correct)
-          const tensor = tf.browser
-            .fromPixels(img)
-            .resizeNearestNeighbor([224, 224]) // Resize to the expected input size
-            .toFloat()
-            .expandDims(0);
-
-          // Make prediction
-          const predictions = await model.predict(tensor).data();
-          const mostPredict = Math.max(...predictions)
-          const predictedClass = predictions.indexOf(mostPredict); // Get the index of the highest probability
-
-          // Display the result
-          const classNames = {
-            0: "Apple___Apple_scab",
-            1: "Apple___Black_rot",
-            2: "Apple___Cedar_apple_rust",
-            3: "Apple___healthy",
-            4: "Blueberry___healthy",
-            5: "Cherry_(including_sour)___Powdery_mildew",
-            6: "Cherry_(including_sour)___healthy",
-            7: "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
-            8: "Corn_(maize)___Common_rust_",
-            9: "Corn_(maize)___Northern_Leaf_Blight",
-            10: "Corn_(maize)___healthy",
-            11: "Grape___Black_rot",
-            12: "Grape___Esca_(Black_Measles)",
-            13: "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)",
-            14: "Grape___healthy",
-            15: "Orange___Haunglongbing_(Citrus_greening)",
-            16: "Peach___Bacterial_spot",
-            17: "Peach___healthy",
-            18: "Pepper_bell___Bacterial_spot",
-            19: "Pepper_bell___healthy",
-            20: "Potato___Early_blight",
-            21: "Potato___Late_blight",
-            22: "Potato___healthy",
-            23: "Raspberry___healthy",
-            24: "Soybean___healthy",
-            25: "Squash___Powdery_mildew",
-            26: "Strawberry___Leaf_scorch",
-            27: "Strawberry___healthy",
-            28: "Tomato___Bacterial_spot",
-            29: "Tomato___Early_blight",
-            30: "Tomato___Late_blight",
-            31: "Tomato___Leaf_Mold",
-            32: "Tomato___Septoria_leaf_spot",
-            33: "Tomato___Spider_mites Two-spotted_spider_mite",
-            34: "Tomato___Target_Spot",
-            35: "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
-            36: "Tomato___Tomato_mosaic_virus",
-            37: "Tomato___healthy",
-          }; // Update based on your model's classes
-          document.getElementById(
-            "leafState"
-          ).innerText = `Leaf Health: ${classNames[predictedClass]}`;
-          document.getElementById(
-            "confidence"
-          ).innerText = `CONFIDENCE: ${Math.round(mostPredict*100)}%`;
-        };
-      }
-    </script>
-    <!-- update the version number as needed -->
+    <script type="module" src="backend.js"></script>
+    <script type="module" src="frontend.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <script defer src="/__/firebase/11.0.2/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
     <script defer src="/__/firebase/11.0.2/firebase-auth-compat.js"></script>
-    <script
-      defer
-      src="/__/firebase/11.0.2/firebase-database-compat.js"
-    ></script>
-    <script
-      defer
-      src="/__/firebase/11.0.2/firebase-firestore-compat.js"
-    ></script>
-    <script
-      defer
-      src="/__/firebase/11.0.2/firebase-functions-compat.js"
-    ></script>
-    <script
-      defer
-      src="/__/firebase/11.0.2/firebase-messaging-compat.js"
-    ></script>
+    <script defer src="/__/firebase/11.0.2/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/11.0.2/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/11.0.2/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/11.0.2/firebase-messaging-compat.js"></script>
     <script defer src="/__/firebase/11.0.2/firebase-storage-compat.js"></script>
-    <script
-      defer
-      src="/__/firebase/11.0.2/firebase-analytics-compat.js"
-    ></script>
-    <script
-      defer
-      src="/__/firebase/11.0.2/firebase-remote-config-compat.js"
-    ></script>
-    <script
-      defer
-      src="/__/firebase/11.0.2/firebase-performance-compat.js"
-    ></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
+    <script defer src="/__/firebase/11.0.2/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/11.0.2/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/11.0.2/firebase-performance-compat.js"></script>
     <script defer src="/__/firebase/init.js?useEmulator=true"></script>
   </head>
   <body>
@@ -240,6 +30,7 @@
     <input type="file" accept="image/*" id="leafUploader" style="display: none;" onchange="captureLeafImage(event)" />
     <img id="leafPicture" style="display: none" alt="Uploaded Leaf Image" />
     <p id="status">Status:</p>
-    <p id="leafState">Leaf Health:</p> <p id="confidence">Confidence: </p>
+    <p id="leafState">Leaf Health:</p>
+    <p id="confidence">Confidence: </p>
   </body>
 </html>
