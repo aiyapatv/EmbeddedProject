@@ -1,67 +1,72 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LeafLink</title>
-    <link rel="icon" type="image/x-icon" href="/image/icon.png">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script type="module" src="backend.js"></script>
-    <script type="module" src="frontend.js"></script>
-    <script type="module">
-      import { togglePlantType, toggleEdit } from "./frontend.js";
-      window.togglePlantType = togglePlantType;
-      window.toggleEdit = toggleEdit;
-    </script>
-    
-    <link rel="stylesheet" href="styles.css">
-    <script defer src="/__/firebase/11.0.2/firebase-app-compat.js"></script>
-    <script defer src="/__/firebase/11.0.2/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/11.0.2/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/11.0.2/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/11.0.2/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/11.0.2/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/11.0.2/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/11.0.2/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/11.0.2/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/11.0.2/firebase-performance-compat.js"></script>
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-  </head>
-  <body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LeafLink</title>
+  <link rel="icon" type="image/x-icon" href="/image/icon.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script type="module" src="backend.js"></script>
+  <script type="module" src="frontend.js"></script>
+  <script type="module">
+    import { togglePlantType, toggleEdit } from "./frontend.js";
+    window.togglePlantType = togglePlantType;
+    window.toggleEdit = toggleEdit;
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="/__/firebase/11.0.2/firebase-app-compat.js"></script>
+  <script defer src="/__/firebase/11.0.2/firebase-auth-compat.js"></script>
+  <script defer src="/__/firebase/11.0.2/firebase-database-compat.js"></script>
+  <script defer src="/__/firebase/11.0.2/firebase-firestore-compat.js"></script>
+  <script defer src="/__/firebase/11.0.2/firebase-functions-compat.js"></script>
+  <script defer src="/__/firebase/11.0.2/firebase-messaging-compat.js"></script>
+  <script defer src="/__/firebase/11.0.2/firebase-storage-compat.js"></script>
+  <script defer src="/__/firebase/11.0.2/firebase-analytics-compat.js"></script>
+  <script defer src="/__/firebase/11.0.2/firebase-remote-config-compat.js"></script>
+  <script defer src="/__/firebase/11.0.2/firebase-performance-compat.js"></script>
+  <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+</head>
+
+<body>
+  <div id="container">
     <div class="toggle-container">
       <div class="plant-type">
         <span id="plantTypeHeading">Decoration</span>
         <span>(plant type)</span>
       </div>
-      <button onclick="togglePlantType()">Switch</button>
+      <button id="changeType" class="rotating" onclick="togglePlantType()"><i class="fa-solid fa-arrows-rotate" style="color: #B8B8B8;"></i></button>
     </div>
-    <div>
-      <img id="plantImage" src="/image/decoration.jpg" alt="Plant Type Image">
-    </div>
-    <div>
-      <span id="plantName"></span>
-      <button id="editButton" onclick="toggleEdit()">Edit</button>
+    <div id="plantContainer">
+      <div>
+        <img id="plantImage" src="/image/decoration.jpg" alt="Plant Type Image" />
+      </div>
+      <div>
+        <span id="plantName"></span>
+        <button id="editButton" onclick="toggleEdit()"><i class="fa-regular fa-pen-to-square"></i></button>
+      </div>
     </div>
     <div id="sensorStatus">
       <div class="sensor">
         <p>temperature</p>
-        <p class="data" id="temperature"> ℃</p>
+        <p class="data" id="temperature">℃</p>
       </div>
       <div class="sensor">
         <p>humidity</p>
-        <p class="data" id="humidity"> %</p>
+        <p class="data" id="humidity">%</p>
       </div>
       <div class="sensor">
         <p>soil moisture</p>
-        <p class="data" id="moisture"> %</p>
+        <p class="data" id="moisture">%</p>
       </div>
     </div>
     <div id="action">
       <button>watering</button>
       <button type="button" onclick="document.getElementById('leafUploader').click()">
         detect
-      </button>  
-      <input type="file" accept="image/*" id="leafUploader" style="display: none;" onchange="captureLeafImage(event)" />  
+      </button>
+      <input type="file" accept="image/*" id="leafUploader" style="display: none" onchange="captureLeafImage(event)" />
     </div>
     <div id="tank">
       <div id="watertank">
@@ -73,9 +78,10 @@
         <span class="close-btn">&times;</span>
         <img id="leafPicture" style="display: none" alt="Uploaded Leaf Image" />
         <p id="leafState">Leaf Health:</p>
-        <p id="confidence">Confidence: </p>
+        <p id="confidence">Confidence:</p>
       </div>
     </div>
     <button id="toggleButton" onclick="toggleLight()">On</button>
-  </body>
+  </div>
+</body>
 </html>

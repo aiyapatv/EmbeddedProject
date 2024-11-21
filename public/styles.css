@@ -2,17 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Kanit", sans-serif;
+}
+button{
+    background: none;
+    border: none;
+    padding: none;
+    margin: none;
+}
+#container {
+  position: relative;
+  width: 382px;
+  background-color: aliceblue;
+  padding: 8px 24px 8px 24px;
+}
 .toggle-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 10px 0;
 }
 .plant-type {
   display: flex;
   gap: 5px;
+  align-items: baseline;
 }
-
+#changeType {
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+}
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(180deg);
+    }
+}
+.rotating {
+    animation: rotate 0.35s linear; /* Adjust duration as needed */
+}
+#plantTypeHeading {
+  font-size: 32px;
+  font-weight: 600;
+  color: black;
+}
 .toggle-container button {
   padding: 5px 10px;
   font-size: 14px;
@@ -20,11 +59,21 @@
 }
 .plant-type span {
   font-size: 16px;
+  color: #B8B8B8;
+}
+#plantContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: baseline;
+    align-items: center;
+}
+#plantName {
+    font-size: 20px;
 }
 #plantImage {
   width: 300px;
-  height: 500px;
-  object-fit: cover;
+  height: 300px;
+  object-fit: fill;
 }
 input {
   padding: 5px;
@@ -33,51 +82,51 @@ input {
   border-radius: 4px;
 }
 #sensorStatus {
-    display: flex;
-    justify-content: space-evenly;
+  display: flex;
+  justify-content: space-around;
 }
-.sensor{
-    text-align: center;
+.sensor {
+  text-align: center;
 }
-#action{
-    display: flex;
-    justify-content: space-evenly;
+#action {
+  display: flex;
+  justify-content: space-evenly;
 }
-#tank{
-    display: flex;
-    justify-content: space-evenly;
+#tank {
+  display: flex;
+  justify-content: space-evenly;
 }
-#popup{
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+#popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 .popup-content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 300px;
-    text-align: center;
-    align-items: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 300px;
+  text-align: center;
+  align-items: center;
 }
 .close-btn {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    font-size: 20px;
-    cursor: pointer;
-    background-color: transparent;
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  background-color: transparent;
 }

@@ -1,9 +1,9 @@
-import { changePlantType, changePlantName } from './backend.js';
+import { changePlantType, changePlantName } from "./backend.js";
 
-const closeBtn = document.querySelector('.close-btn');
+const closeBtn = document.querySelector(".close-btn");
 
-closeBtn.addEventListener('click', () => {
-    popup.style.display = 'none';
+closeBtn.addEventListener("click", () => {
+  popup.style.display = "none";
 });
 
 window.captureLeafImage = function (event) {
@@ -16,11 +16,11 @@ window.captureLeafImage = function (event) {
     // Read the image file as a data URL
     reader.onload = function (e) {
       const imageData = e.target.result;
-      const popup = document.getElementById('popup');
+      const popup = document.getElementById("popup");
       // Display the uploaded image
       capturedImage.src = imageData;
       capturedImage.style.display = "block";
-      popup.style.display = 'flex';
+      popup.style.display = "flex";
       // Process the image using TensorFlow.js or another function
       processLeafHealth(imageData);
     };
@@ -99,7 +99,13 @@ async function processLeafHealth(imageData) {
 }
 export function togglePlantType() {
   const heading = document.getElementById("plantTypeHeading");
+  const button = document.getElementById("changeType");
+  button.classList.remove("rotating");
 
+  // Use a slight delay to re-add the class
+  setTimeout(() => {
+    button.classList.add("rotating");
+  }, 10); // 10ms delay ensures the DOM updates
   if (heading.innerText === "Decoration") {
     changePlantType(true);
   } else {
@@ -107,24 +113,35 @@ export function togglePlantType() {
   }
 }
 export function toggleEdit() {
-  const plantName = document.getElementById('plantName');
-  const button = document.getElementById('editButton');
-  
-  if (button.innerText === "Edit") {
-    const input = document.createElement('input');
-    input.type = 'text';
+  const plantName = document.getElementById("plantName");
+  const button = document.getElementById("editButton");
+
+  if (button.innerHTML.includes("fa-pen-to-square")) {
+    const input = document.createElement("input");
+    input.type = "text";
     input.value = plantName.innerText;
-    plantName.innerHTML = '';  
-    plantName.appendChild(input);  
-    button.innerText = "Done";  
+    plantName.innerHTML = "";
+    plantName.appendChild(input);
+    button.innerHTML = "Done";
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        finishEdit(input);
+      }
+    });
   } else {
-    const input = plantName.querySelector('input');
-    changePlantName(input.value);
-    plantName.innerHTML = input.value;  
-    button.innerText = "Edit"; 
+    const input = plantName.querySelector("input");
+    finishEdit(input);
   }
 }
 
+function finishEdit(input) {
+  const plantName = document.getElementById("plantName");
+  const button = document.getElementById("editButton");
 
+  // Update the plant name
+  changePlantName(input.value);
+  plantName.innerHTML = input.value;
 
-
+  // Change the button text back to "Edit"
+  button.innerHTML = `<i class="fa-regular fa-pen-to-square"></i>`;
+}

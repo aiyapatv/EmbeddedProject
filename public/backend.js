@@ -99,7 +99,7 @@ export async function changePlantType(value) {
 }
 
 export async function changePlantName(value) {
-    set(ref(db, "data/plantName"), value);
+  set(ref(db, "data/plantName"), value);
 }
 
 // let recognition; // Declare recognition variable
