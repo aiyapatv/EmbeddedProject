@@ -120,9 +120,15 @@ export function toggleEdit() {
     const input = document.createElement("input");
     input.type = "text";
     input.value = plantName.innerText;
-    plantName.innerHTML = "";
+    plantName.innerHTML = "";  // Clear the current plant name
     plantName.appendChild(input);
-    button.innerHTML = "Done";
+
+    // Replace button content with the "Done" check icon
+    button.innerHTML = ''; // Clear the button content
+    const checkIcon = document.createElement('i');
+    checkIcon.classList.add('fa-solid', 'fa-square-check'); // Add check icon class
+    button.appendChild(checkIcon);
+
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         finishEdit(input);
@@ -140,8 +146,11 @@ function finishEdit(input) {
 
   // Update the plant name
   changePlantName(input.value);
-  plantName.innerHTML = input.value;
+  plantName.innerHTML = input.value; // Set the new plant name
 
-  // Change the button text back to "Edit"
-  button.innerHTML = `<i class="fa-regular fa-pen-to-square"></i>`;
+  // Replace button content with the edit pencil icon
+  button.innerHTML = ''; // Clear the button content
+  const editIcon = document.createElement('i');
+  editIcon.classList.add('fa-solid', 'fa-pen-to-square'); // Add pencil icon class
+  button.appendChild(editIcon);
 }

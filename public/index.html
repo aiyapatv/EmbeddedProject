@@ -42,46 +42,66 @@
       <div>
         <img id="plantImage" src="/image/decoration.jpg" alt="Plant Type Image" />
       </div>
-      <div>
-        <span id="plantName"></span>
+      <div id="plantNameContainer">
+        <div id="plantName"></div>
         <button id="editButton" onclick="toggleEdit()"><i class="fa-regular fa-pen-to-square"></i></button>
       </div>
     </div>
     <div id="sensorStatus">
       <div class="sensor">
-        <p>temperature</p>
+        <i class="fa-solid fa-temperature-three-quarters sensor-icon"  ></i>
+        <p class="sensor-heading">temperature</p>
         <p class="data" id="temperature">℃</p>
       </div>
       <div class="sensor">
-        <p>humidity</p>
+        <i class="fa-solid fa-droplet"></i>
+        <p class="sensor-heading">humidity</p>
         <p class="data" id="humidity">%</p>
       </div>
       <div class="sensor">
-        <p>soil moisture</p>
+        <i class="fa-solid fa-seedling"></i>
+        <p class="sensor-heading">soil moisture</p>
         <p class="data" id="moisture">%</p>
       </div>
     </div>
-    <div id="action">
-      <button>watering</button>
-      <button type="button" onclick="document.getElementById('leafUploader').click()">
-        detect
-      </button>
-      <input type="file" accept="image/*" id="leafUploader" style="display: none" onchange="captureLeafImage(event)" />
-    </div>
     <div id="tank">
       <div id="watertank">
-        <p>water tank</p>
+        <p class="alert-header">Water Level is Sufficient</p>
       </div>
+    </div>
+    <div id="action">
+      <div>
+        <div class="upper-button">
+          <button class="watering-button">watering</button>
+          <button class="detect-button" type="button" onclick="document.getElementById('leafUploader').click()">
+            detect
+          </button>
+        </div>
+        <div class="lower-button">
+          <button class="toggle-light-button" onclick="toggleLight()">On</button>
+        </div>
+      </div>
+      
+      <input type="file" accept="image/*" id="leafUploader" style="display: none" onchange="captureLeafImage(event)" />
     </div>
     <div id="popup">
       <div class="popup-content">
         <span class="close-btn">&times;</span>
         <img id="leafPicture" style="display: none" alt="Uploaded Leaf Image" />
-        <p id="leafState">Leaf Health:</p>
-        <p id="confidence">Confidence:</p>
-      </div>
+        <div class="detect-information">
+          <div id="leafState">
+            <p >Leaf Health:</p>
+          </div>
+          <div id="confidence">
+            <p >Confidence:</p>
+          </div>
+        </div>
+        
+        
+      </div> 
     </div>
-    <button id="toggleButton" onclick="toggleLight()">On</button>
+
+    
   </div>
 </body>
 </html>

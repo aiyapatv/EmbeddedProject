@@ -1,6 +1,6 @@
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
 
 body {
   display: flex;
@@ -15,15 +15,19 @@ button{
     margin: none;
 }
 #container {
-  position: relative;
-  width: 382px;
-  background-color: aliceblue;
-  padding: 8px 24px 8px 24px;
-}
+    position: relative;
+    width: 382px;
+    height: 932px;
+    border: 1px solid #344E41;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+  }
 .toggle-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 24px;
 }
 .plant-type {
   display: flex;
@@ -66,10 +70,50 @@ button{
     flex-direction: column;
     justify-content: baseline;
     align-items: center;
+    padding: 24px;
+    gap: 32px;
+    position: relative;
 }
+
+#plantNameContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
+
 #plantName {
+    position: relative;
     font-size: 20px;
+    z-index: 1; 
+    font-weight: 500;
 }
+#plantName input {
+  width: 100%;
+  padding: 8px 0; 
+  border: none;
+  border-bottom: 2px solid #344E41;
+  font-size: 18px;
+  outline: none;
+  background: transparent; 
+  transition: border-color 0.3s; 
+  text-align: center;
+  border-radius: 0
+}
+
+
+#editButton {
+    position: absolute; /* Position it absolutely within the #plantNameContainer */
+    right: 0; /* Align the button to the right edge of plantName */
+    top: 50%; /* Center it vertically */
+    transform: translateY(-50%); /* Adjust the button vertically to be centered */
+    font-size: 16px; 
+    cursor: pointer;
+    z-index: 0;
+}
+
 #plantImage {
   width: 300px;
   height: 300px;
@@ -81,20 +125,120 @@ input {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
 #sensorStatus {
   display: flex;
   justify-content: space-around;
-}
-.sensor {
-  text-align: center;
-}
-#action {
-  display: flex;
-  justify-content: space-evenly;
+  padding: 24px;
+  padding-bottom: 0px;
 }
 #tank {
   display: flex;
   justify-content: space-evenly;
+  padding: 24px;
+  padding-top: 0px;
+}
+#watertank {
+  width: 100%;
+  border-left: 4px solid #344E41; 
+  background-color: white; 
+  padding: 8px;
+  border-radius: 8px; 
+  box-shadow: 2px 2px 5px rgba(52, 78, 65, 0.8);
+}
+.alert-header {
+  font-weight: 500;
+  font-size: 16px;
+  margin: 0px;
+  color: #344E41;
+  padding-left: 10px;
+}
+/* ---------information------------------------------------- */
+.sensorStatus{
+    margin: 24px;
+}
+
+.sensor {
+    text-align: center;
+    gap: 8px;
+  }
+
+.sensor-icon {
+    font-size: 25px; 
+    color: #344E41;
+}
+
+.sensor {
+    margin: 0;
+    font-size: 20px; 
+    color: #344E41;
+    font-weight: bold;
+}
+.sensor-heading{
+    font-size: 14px; 
+    color: #B8B8B8;
+    font-weight: normal;
+}
+/* ---------action----------- */
+
+#action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+}
+
+.upper-button {
+  width: 100%;
+  display: flex;
+  flex-direction:row;
+  gap: 12px; 
+  margin-bottom: 12px;
+}
+
+/* Lower button group (On button) */
+.lower-button {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.toggle-light-button {
+    padding: 0px;
+    /* width: 100%; */
+    width: 332px;
+    height: 42px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: 600;
+    background-color: #E6E6E6;
+}
+.watering-button {
+  padding: 0px;
+  border-radius: 8px;
+  height: 48px;
+  width: 100%;
+  background-color: #344E41;
+  color: white;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.detect-button {
+  padding: 0px;
+  border-radius: 8px;
+  height: 48px;
+  width: 100%;
+  background-color: #E6E6E6;
+  color: black;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
 }
 #popup {
   display: none;
@@ -107,6 +251,7 @@ input {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 24px;
 }
 .popup-content {
   position: relative;
@@ -115,7 +260,7 @@ input {
   justify-content: center;
   align-items: center;
   background-color: white;
-  padding: 20px;
+  padding: 24px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width: 300px;
@@ -124,9 +269,35 @@ input {
 }
 .close-btn {
   position: absolute;
-  top: 5px;
+  top: 0px;
   right: 10px;
-  font-size: 20px;
+  font-size: 30px;
   cursor: pointer;
   background-color: transparent;
+  background: none;
+}
+#leafPicture {
+  max-width: 100%;
+  max-height: 80%;
+  object-fit: contain; 
+  border-radius: 6px;
+}
+#leafState {
+  width: 100%;
+  padding: 12px;
+  border-top: 1px solid#B8B8B8;
+}
+#confidence{
+  width: 100%;
+  padding: 12px;
+  border-top: 1px solid#B8B8B8;
+  border-bottom: 1px solid#B8B8B8;
+}
+.detect-information{
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  width: 90%;
+  justify-content: center;
+  align-items: center;
 }
