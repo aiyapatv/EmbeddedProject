@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Voice to Firebase</title>
+    <title>LeafLink</title>
+    <link rel="icon" type="image/x-icon" href="/image/icon.png">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script type="module" src="backend.js"></script>
     <script type="module" src="frontend.js"></script>
@@ -35,22 +36,46 @@
       <button onclick="togglePlantType()">Switch</button>
     </div>
     <div>
-      <img id="plantImage" src="../image/decoration.jpg" alt="Plant Type Image">
+      <img id="plantImage" src="/image/decoration.jpg" alt="Plant Type Image">
     </div>
     <div>
-      <span id="plantName">Decoration</span>
+      <span id="plantName"></span>
       <button id="editButton" onclick="toggleEdit()">Edit</button>
     </div>
-    
+    <div id="sensorStatus">
+      <div class="sensor">
+        <p>temperature</p>
+        <p class="data" id="temperature"> ℃</p>
+      </div>
+      <div class="sensor">
+        <p>humidity</p>
+        <p class="data" id="humidity"> %</p>
+      </div>
+      <div class="sensor">
+        <p>soil moisture</p>
+        <p class="data" id="moisture"> %</p>
+      </div>
+    </div>
+    <div id="action">
+      <button>watering</button>
+      <button type="button" onclick="document.getElementById('leafUploader').click()">
+        detect
+      </button>  
+      <input type="file" accept="image/*" id="leafUploader" style="display: none;" onchange="captureLeafImage(event)" />  
+    </div>
+    <div id="tank">
+      <div id="watertank">
+        <p>water tank</p>
+      </div>
+    </div>
+    <div id="popup">
+      <div class="popup-content">
+        <span class="close-btn">&times;</span>
+        <img id="leafPicture" style="display: none" alt="Uploaded Leaf Image" />
+        <p id="leafState">Leaf Health:</p>
+        <p id="confidence">Confidence: </p>
+      </div>
+    </div>
     <button id="toggleButton" onclick="toggleLight()">On</button>
-
-    <button type="button" onclick="document.getElementById('leafUploader').click()">
-      Upload Leaf Image
-    </button>
-    <input type="file" accept="image/*" id="leafUploader" style="display: none;" onchange="captureLeafImage(event)" />
-    <img id="leafPicture" style="display: none" alt="Uploaded Leaf Image" />
-    <p id="status">Status:</p>
-    <p id="leafState">Leaf Health:</p>
-    <p id="confidence">Confidence: </p>
   </body>
 </html>

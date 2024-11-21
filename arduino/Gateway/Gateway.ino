@@ -75,7 +75,7 @@ void loop() {
     if(c != '\n'){
       temp += c;
     }else{
-      parseAndSendToFirebase(incomingMessage);
+      parseAndSendToFirebase(temp);
       temp = "";
     }
   }
@@ -99,16 +99,23 @@ void streamCallback(StreamData data) {
   Serial.println(value);
 
   // Process based on the subpath
-  if (changedPath == statusPath) {
-    updateLightStatus(value);
-  } else if (changedPath == tempPath) {
+  if (changedPath == "/lightStatus") {
+    if (value == "On"){
+      digitalWrite(ledPin, HIGH);
+    } else {
+      digitalWrite(ledPin, LOW);
+    }
+  } else if (changedPath == "/temperature") {
     Serial.print("Temperature updated: ");
     Serial.println(value);
-  } else if (changedPath == humidityPaht) {
+  } else if (changedPath == "/humidity") {
     Serial.print("Humidity updated: ");
     Serial.println(value);
-  } else if (changedPath == waterPumpPath) 
-  else {
+  } else if (changedPath == "/waterPump") {
+    Serial.print("Pump updated: ");
+    Serial.println(value);
+  } else if (changedPath == "/moisture"){
+  } else {
     Serial.println("Unknown path. No action taken.");
   }
 }
@@ -122,19 +129,17 @@ void streamTimeoutCallback(bool timeout) {
 }
 
 void updateLightStatus(String value) {
-  if(value = "ON"){
-    digitalWrite(ledPin, HIGH)
-  }else{
-    digitalWrite(ledPin, LOW)
-  }
+  
 }
 
 void parseAndSendToFirebase(String message) {
   int colonIndex = message.indexOf(':'); // Find the position of ':'
   if (colonIndex > 0) {
     // Extract the statusPath and status
-    String dataPath = path + message.substring(0, colonIndex).trim(); // Extract path (before ':') and trim whitespace
-    String value = message.substring(colonIndex + 1).trim();    // Extract status (after ':') and trim whitespace
+    String dataPath = path + message.substring(0, colonIndex);
+    dataPath.trim();
+    String value = message.substring(colonIndex + 1);
+    value.trim();
 
     Serial.println("Parsed Data:");
     Serial.println("Path: " + dataPath);
@@ -144,7 +149,7 @@ void parseAndSendToFirebase(String message) {
     if (Firebase.setString(firebaseData, dataPath, value)) {
       Serial.println("Data sent to Firebase successfully.");
     } else {
-      Serial.println("Failed to send data to Firebase: " + Firebase.errorReason());
+      Serial.println("Failed to send data to Firebase: " + firebaseData.errorReason());
     }
   } else {
     Serial.println("Invalid message format. Skipping...");

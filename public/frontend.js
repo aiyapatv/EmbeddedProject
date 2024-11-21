@@ -1,3 +1,11 @@
+import { changePlantType, changePlantName } from './backend.js';
+
+const closeBtn = document.querySelector('.close-btn');
+
+closeBtn.addEventListener('click', () => {
+    popup.style.display = 'none';
+});
+
 window.captureLeafImage = function (event) {
   const input = event.target;
   const capturedImage = document.getElementById("leafPicture");
@@ -8,11 +16,11 @@ window.captureLeafImage = function (event) {
     // Read the image file as a data URL
     reader.onload = function (e) {
       const imageData = e.target.result;
-
+      const popup = document.getElementById('popup');
       // Display the uploaded image
       capturedImage.src = imageData;
       capturedImage.style.display = "block";
-
+      popup.style.display = 'flex';
       // Process the image using TensorFlow.js or another function
       processLeafHealth(imageData);
     };
@@ -91,14 +99,11 @@ async function processLeafHealth(imageData) {
 }
 export function togglePlantType() {
   const heading = document.getElementById("plantTypeHeading");
-  const image = document.getElementById("plantImage");
 
   if (heading.innerText === "Decoration") {
-    heading.innerText = "Vegetable";
-    image.src = "../image/vegetable.jpg";
+    changePlantType(true);
   } else {
-    heading.innerText = "Decoration";
-    image.src = "../image/decoration.jpg";
+    changePlantType(false);
   }
 }
 export function toggleEdit() {
@@ -114,6 +119,7 @@ export function toggleEdit() {
     button.innerText = "Done";  
   } else {
     const input = plantName.querySelector('input');
+    changePlantName(input.value);
     plantName.innerHTML = input.value;  
     button.innerText = "Edit"; 
   }
