@@ -146,7 +146,7 @@ input {
   border-radius: 8px; 
   box-shadow: 2px 2px 5px rgba(52, 78, 65, 0.8);
 }
-.alert-header {
+#alert-header {
   font-weight: 500;
   font-size: 16px;
   margin: 0px;
@@ -202,7 +202,7 @@ input {
     display: flex;
     justify-content: center;
 }
-.toggle-light-button {
+#toggle-light-button {
     padding: 0px;
     /* width: 100%; */
     width: 332px;
@@ -217,7 +217,7 @@ input {
     font-weight: 600;
     background-color: #E6E6E6;
 }
-.watering-button {
+#watering-button {
   padding: 0px;
   border-radius: 8px;
   height: 48px;

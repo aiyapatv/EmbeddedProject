@@ -1,9 +1,10 @@
 #include <WiFi.h>
 #include <FirebaseESP32.h>
+#include <DHT.h>
 
 // WiFi credentials
-const char* ssid = "Aiyapat iPhone";
-const char* password = "VervergComaL123";
+const char* ssid = "pingee (2)";
+const char* password = "yareyate";
 
 // Firebase credentials
 #define FIREBASE_HOST "iotlab9-874f2-default-rtdb.asia-southeast1.firebasedatabase.app"
@@ -27,9 +28,15 @@ const int ledPin = 15;
 #define TXD1 (19)
 String temp = "";
 
+#define DHTPIN 4
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+float temperature = 0;
+float humidity = 0;
+
 void setup() {
-  Serial.begin(115200);
-  Serial1.begin(115200, SERIAL_8N1, RXD1, TXD1);
+  Serial.begin(9600);
+  Serial1.begin(9600, SERIAL_8N1, RXD1, TXD1);
 
   pinMode(ledPin, OUTPUT);
 
@@ -42,11 +49,11 @@ void setup() {
 
   // Set Firebase credentials
   firebaseConfig.host = FIREBASE_HOST;
-  firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH; // Use legacy token
+  firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;  // Use legacy token
 
   // Initialize Firebase
   Firebase.begin(&firebaseConfig, &firebaseAuth);
-  
+
   // Test Firebase connection
   if (Firebase.ready()) {
     Serial.println("Firebase initialized successfully.");
@@ -66,15 +73,22 @@ void setup() {
 
 void loop() {
   // Handle stream events
-  if (Serial.available()) {
-    char c = Serial.read();
-    Serial1.write(c);
+  humidity = dht.readHumidity();
+  temperature = dht.readTemperature();
+  if (isnan(humidity) || isnan(temperature)) {
+    Serial.println("Failed to read from DHT sensor!");
+  } else {
+    String humidityStr = String(humidity);
+    String temperatureStr = String(temperature);
+    parseAndSendToFirebase("/humidity: " + humidityStr);
+    parseAndSendToFirebase("/temperature: " + temperatureStr);
   }
+
   while (Serial1.available()) {
     char c = Serial1.read();
-    if(c != '\n'){
+    if (c != '\n') {
       temp += c;
-    }else{
+    } else {
       parseAndSendToFirebase(temp);
       temp = "";
     }
@@ -83,6 +97,7 @@ void loop() {
     Serial.println("Stream error: ");
     Serial.println(firebaseData.errorReason());
   }
+  delay(1000);
 }
 
 // Callback function for when the data at the specified path changes
@@ -100,7 +115,7 @@ void streamCallback(StreamData data) {
 
   // Process based on the subpath
   if (changedPath == "/lightStatus") {
-    if (value == "On"){
+    if (value == "On") {
       digitalWrite(ledPin, HIGH);
     } else {
       digitalWrite(ledPin, LOW);
@@ -114,7 +129,8 @@ void streamCallback(StreamData data) {
   } else if (changedPath == "/waterPump") {
     Serial.print("Pump updated: ");
     Serial.println(value);
-  } else if (changedPath == "/moisture"){
+    Serial1.write(value);
+  } else if (changedPath == "/moisture") {
   } else {
     Serial.println("Unknown path. No action taken.");
   }
@@ -129,16 +145,15 @@ void streamTimeoutCallback(bool timeout) {
 }
 
 void updateLightStatus(String value) {
-  
 }
 
 void parseAndSendToFirebase(String message) {
-  int colonIndex = message.indexOf(':'); // Find the position of ':'
+  int colonIndex = message.indexOf(':');  // Find the position of ':'
   if (colonIndex > 0) {
     // Extract the statusPath and status
     String dataPath = path + message.substring(0, colonIndex);
     dataPath.trim();
-    String value = message.substring(colonIndex + 1);
+    String value = message.substring(colonIndex + 2);
     value.trim();
 
     Serial.println("Parsed Data:");

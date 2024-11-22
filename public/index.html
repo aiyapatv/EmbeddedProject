@@ -66,19 +66,19 @@
     </div>
     <div id="tank">
       <div id="watertank">
-        <p class="alert-header">Water Level is Sufficient</p>
+        <p id="alert-header">Water Level is Sufficient</p>
       </div>
     </div>
     <div id="action">
       <div>
         <div class="upper-button">
-          <button class="watering-button">watering</button>
+          <button id="watering-button" onclick="toggleWater()">watering</button>
           <button class="detect-button" type="button" onclick="document.getElementById('leafUploader').click()">
             detect
           </button>
         </div>
         <div class="lower-button">
-          <button class="toggle-light-button" onclick="toggleLight()">On</button>
+          <button id="toggle-light-button" onclick="toggleLight()">On</button>
         </div>
       </div>
       

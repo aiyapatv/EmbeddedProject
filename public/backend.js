@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 import {
   getDatabase,
+  get,
   ref,
   set,
   onValue,
@@ -26,7 +27,7 @@ const db = getDatabase(app);
 const statusRef = ref(db, "data/lightStatus"); // Firebase path to monitor
 onValue(statusRef, (snapshot) => {
   const status = snapshot.val();
-  const button = document.getElementById("toggleButton");
+  const button = document.getElementById("toggle-light-button");
   button.innerText = `${status}`;
 });
 
@@ -67,27 +68,66 @@ onValue(moisture, (snapshot) => {
   heading.innerText = `${moisture} %`;
 });
 
+const water = ref(db, "data/water");
+onValue(water, (snapshot) => {
+  const water = snapshot.val();
+  const heading = document.getElementById("alert-header");
+  console.log(water);
+  if (water == 1) {
+    heading.innerText = "Water Level is Insufficient";
+  } else {
+    heading.innerText = "Water Level is Sufficient";
+  }
+});
+
 window.toggleLight = function () {
-  const button = document.getElementById("toggleButton");
+  const button = document.getElementById("toggle-light-button");
 
   // Check current button text to decide the action
-  if (button.innerText === "On") {
-    set(ref(db, "data/lightStatus"), "Off")
-      .then(() => {
-        console.log("Command sent to Firebase: On");
-      })
-      .catch((error) => {
-        console.error("Error sending command to Firebase", error);
-      });
-  } else {
-    set(ref(db, "data/lightStatus"), "On")
-      .then(() => {
-        console.log("Command sent to Firebase: Off");
-      })
-      .catch((error) => {
-        console.error("Error sending command to Firebase", error);
-      });
-  }
+  temp = ref(db, "data/waterPump");
+  console.log(temp);
+  //   if (button.innerText === "On") {
+  //     set(ref(db, "data/lightStatus"), "Off")
+  //       .then(() => {
+  //         console.log("Command sent to Firebase: On");
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error sending command to Firebase", error);
+  //       });
+  //   } else {
+  //     set(ref(db, "data/lightStatus"), "On")
+  //       .then(() => {
+  //         console.log("Command sent to Firebase: Off");
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error sending command to Firebase", error);
+  //       });
+  //   }
+};
+
+window.toggleWater = function () {
+  const button = document.getElementById("watering-button");
+  const value = ref(db, "data/waterPump");
+  get(value)
+    .then((snapshot) => {
+      if (snapshot.exists() && snapshot.val() == "Off") {
+        set(ref(db, "data/waterPump"), "On");
+        let dotCount = 0;
+        const wateringInterval = setInterval(() => {
+          dotCount = (dotCount % 3) + 1; // Cycle through 1, 2, 3
+          button.textContent = "watering" + ".".repeat(dotCount);
+        }, 500);
+        setTimeout(() => {
+          set(ref(db, "data/waterPump"), "Off");
+          clearInterval(wateringInterval); // Stop the interval
+          console.log("Interval cleared.");
+          button.textContent = "watering"; // Reset button text
+        }, 5000);
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching data:", error); // Handle any errors
+    });
 };
 
 export async function changePlantType(value) {
