@@ -3,8 +3,8 @@
 #include <DHT.h>
 
 // WiFi credentials
-const char* ssid = "pingee (2)";
-const char* password = "yareyate";
+const char* ssid = "Aiyapat iPhone";
+const char* password = "VervergComaL123";
 
 // Firebase credentials
 #define FIREBASE_HOST "iotlab9-874f2-default-rtdb.asia-southeast1.firebasedatabase.app"
@@ -33,6 +33,10 @@ String temp = "";
 DHT dht(DHTPIN, DHTTYPE);
 float temperature = 0;
 float humidity = 0;
+String waterValue = "";
+String moistureValue = "";
+String lightStatus = "";
+String waterPumpStatus = "";
 
 void setup() {
   Serial.begin(9600);
@@ -56,13 +60,32 @@ void setup() {
 
   // Test Firebase connection
   if (Firebase.ready()) {
-    Serial.println("Firebase initialized successfully.");
+    if (Firebase.getString(firebaseData, "/data/output/lightStatus")) {
+      lightStatus = firebaseData.stringData();  // Extract the string value
+      Serial.println("lightStatus: " + lightStatus);
+      if (lightStatus == "On") {
+        digitalWrite(ledPin, HIGH);
+      } else {
+        digitalWrite(ledPin, LOW);
+      }
+    } else {
+      Serial.println("Failed to get initial lightStatus: " + firebaseData.errorReason());
+    }
+
+    if (Firebase.getString(firebaseData, "/data/output/waterPump")) {
+      waterPumpStatus = firebaseData.stringData();
+      Serial.print("Initial waterPump: ");
+      Serial.println(waterPumpStatus);
+      Serial1.write(waterPumpStatus.c_str());  // Send initial command to pump
+    } else {
+      Serial.println("Failed to get initial waterPump: " + firebaseData.errorReason());
+    }
   } else {
     Serial.println("Failed to initialize Firebase.");
   }
 
   // Fetch data from Firebase
-  if (Firebase.beginStream(firebaseData, path)) {
+  if (Firebase.beginStream(firebaseData, "/data/output")) {
     Serial.println("Stream started successfully.");
     Firebase.setStreamCallback(firebaseData, streamCallback, streamTimeoutCallback);
   } else {
@@ -76,7 +99,6 @@ void loop() {
   humidity = dht.readHumidity();
   temperature = dht.readTemperature();
   if (isnan(humidity) || isnan(temperature)) {
-    Serial.println("Failed to read from DHT sensor!");
   } else {
     String humidityStr = String(humidity);
     String temperatureStr = String(temperature);
@@ -89,9 +111,25 @@ void loop() {
     if (c != '\n') {
       temp += c;
     } else {
-      parseAndSendToFirebase(temp);
+      int colonIndex = temp.indexOf(':');  // Find the position of ':'
+      if (colonIndex > 0) {
+        String dataPath = path + temp.substring(0, colonIndex);
+        dataPath.trim();
+        String value = temp.substring(colonIndex + 2);
+        value.trim();
+        if (dataPath == "/data/water" && value != waterValue) {
+          waterValue = value;
+          parseAndSendToFirebase(temp);
+        } else if (dataPath == "/data/moisture" && value != moistureValue) {
+          waterValue = value;
+          parseAndSendToFirebase(temp);
+        }
+      }
       temp = "";
     }
+  }
+  while (Serial1.available()) {
+    Serial1.read();  // Read and discard any leftover data
   }
   if (!Firebase.readStream(firebaseData)) {
     Serial.println("Stream error: ");
@@ -99,40 +137,38 @@ void loop() {
   }
   delay(1000);
 }
-
 // Callback function for when the data at the specified path changes
 void streamCallback(StreamData data) {
   Serial.println("Stream data received:");
+  Serial.println(data.stringData());  // Log the received data for debugging
 
-  // Get the path and value that triggered the event
-  String changedPath = data.dataPath();
-  String value = data.stringData();
+  // Check if the data type is JSON
+  if (data.dataType() == "json") {
+    // Parse the JSON object
+    FirebaseJson* json = data.jsonObjectPtr();
+    FirebaseJsonData jsonData;
 
-  Serial.print("Changed Path: ");
-  Serial.println(changedPath);
-  Serial.print("Value: ");
-  Serial.println(value);
-
-  // Process based on the subpath
-  if (changedPath == "/lightStatus") {
-    if (value == "On") {
-      digitalWrite(ledPin, HIGH);
-    } else {
-      digitalWrite(ledPin, LOW);
+    // Extract lightStatus
+    if (json->get(jsonData, "lightStatus")) {
+      String lightStatus = jsonData.stringValue;
+      Serial.println("Updated lightsStatus: " + lightStatus);
+      if (lightStatus == "On") {
+        digitalWrite(ledPin, HIGH);
+        Serial.println("Light turned ON");
+      } else if (lightStatus == "Off") {
+        digitalWrite(ledPin, LOW);
+        Serial.println("Light turned OFF");
+      }
     }
-  } else if (changedPath == "/temperature") {
-    Serial.print("Temperature updated: ");
-    Serial.println(value);
-  } else if (changedPath == "/humidity") {
-    Serial.print("Humidity updated: ");
-    Serial.println(value);
-  } else if (changedPath == "/waterPump") {
-    Serial.print("Pump updated: ");
-    Serial.println(value);
-    Serial1.write(value);
-  } else if (changedPath == "/moisture") {
+
+    // Extract waterPump
+    if (json->get(jsonData, "waterPump")) {
+      String waterPumpStatus = jsonData.stringValue;
+      Serial.println("Updated waterPump: " + waterPumpStatus);
+      Serial1.write(waterPumpStatus.c_str());  // Send the updated status to the pump
+    }
   } else {
-    Serial.println("Unknown path. No action taken.");
+    Serial.println("Unhandled data type. Expected JSON.");
   }
 }
 
@@ -140,27 +176,30 @@ void streamCallback(StreamData data) {
 void streamTimeoutCallback(bool timeout) {
   if (timeout) {
     Serial.println("Stream timeout, reconnecting...");
-    Firebase.beginStream(firebaseData, path);
+    Firebase.begin(&firebaseConfig, &firebaseAuth);
+    delay(1000);
+    if (Firebase.beginStream(firebaseData, "/data/output")) {
+      Serial.println("Stream reconnected successfully.");
+    } else {
+      Serial.print("Failed to reconnect stream. Error: ");
+      Serial.println(firebaseData.errorReason());
+    }
   }
 }
 
-void updateLightStatus(String value) {
-}
-
 void parseAndSendToFirebase(String message) {
-  int colonIndex = message.indexOf(':');  // Find the position of ':'
+  int colonIndex = message.indexOf(':');
   if (colonIndex > 0) {
-    // Extract the statusPath and status
+    // Extract the dataPath and value
     String dataPath = path + message.substring(0, colonIndex);
     dataPath.trim();
     String value = message.substring(colonIndex + 2);
     value.trim();
+    // Log the data being sent
+    Serial.print(dataPath);
+    Serial.println(value);
 
-    Serial.println("Parsed Data:");
-    Serial.println("Path: " + dataPath);
-    Serial.println("Value: " + value);
-
-    // Send to Firebase
+    // Send the data to Firebase
     if (Firebase.setString(firebaseData, dataPath, value)) {
       Serial.println("Data sent to Firebase successfully.");
     } else {

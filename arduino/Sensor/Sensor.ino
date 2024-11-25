@@ -7,7 +7,7 @@ const int moistPin = A0;
 const int pumpPin = 13;
 float water = 0;
 float moisture = 0;
-char waterPump = '1';
+char waterPump = ' ';
 
 void setup() {
   // put your setup code here, to run once:
@@ -29,6 +29,7 @@ void loop() {
     char c = Serial1.read();
     waterPump = c;
   }
+  Serial.println(waterPump);
   if(waterPump == '1'){
     analogWrite(pumpPin, HIGH);
   }else{
@@ -51,7 +52,7 @@ void loop() {
   } else {
     String moistureStr = "/moisture: " + String(moisture);
     String waterStr = "/water: " + String(water);
-
+    Serial1.flush();
     Serial1.write(moistureStr.c_str());
     Serial1.write("\n");  // Add a newline as a delimiter
     Serial1.write(waterStr.c_str());

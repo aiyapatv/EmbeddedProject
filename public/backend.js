@@ -24,7 +24,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const statusRef = ref(db, "data/lightStatus"); // Firebase path to monitor
+const statusRef = ref(db, "data/output/lightStatus"); // Firebase path to monitor
 onValue(statusRef, (snapshot) => {
   const status = snapshot.val();
   const button = document.getElementById("toggle-light-button");
@@ -84,7 +84,7 @@ window.toggleLight = function () {
   const button = document.getElementById("toggle-light-button");
 
   // Check current button text to decide the action
-  temp = ref(db, "data/waterPump");
+  temp = ref(db, "data/output/waterPump");
   console.log(temp);
   //   if (button.innerText === "On") {
   //     set(ref(db, "data/lightStatus"), "Off")
@@ -107,18 +107,18 @@ window.toggleLight = function () {
 
 window.toggleWater = function () {
   const button = document.getElementById("watering-button");
-  const value = ref(db, "data/waterPump");
+  const value = ref(db, "data/output/waterPump");
   get(value)
     .then((snapshot) => {
-      if (snapshot.exists() && snapshot.val() == "Off") {
-        set(ref(db, "data/waterPump"), "On");
+      if (snapshot.exists() && snapshot.val() == "0") {
+        set(ref(db, "data/output/waterPump"), "1");
         let dotCount = 0;
         const wateringInterval = setInterval(() => {
           dotCount = (dotCount % 3) + 1; // Cycle through 1, 2, 3
           button.textContent = "watering" + ".".repeat(dotCount);
         }, 500);
         setTimeout(() => {
-          set(ref(db, "data/waterPump"), "Off");
+          set(ref(db, "data/output/waterPump"), "0");
           clearInterval(wateringInterval); // Stop the interval
           console.log("Interval cleared.");
           button.textContent = "watering"; // Reset button text
