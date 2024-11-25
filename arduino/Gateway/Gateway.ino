@@ -64,8 +64,10 @@ void setup() {
       lightStatus = firebaseData.stringData();  // Extract the string value
       Serial.println("lightStatus: " + lightStatus);
       if (lightStatus == "On") {
+        Serial.println("LIGHTISON");
         digitalWrite(ledPin, HIGH);
       } else {
+        Serial.println("LIGHTISOFF");
         digitalWrite(ledPin, LOW);
       }
     } else {
@@ -95,7 +97,7 @@ void setup() {
 }
 
 void loop() {
-  // Handle stream events
+  // Handle stream events 
   humidity = dht.readHumidity();
   temperature = dht.readTemperature();
   if (isnan(humidity) || isnan(temperature)) {

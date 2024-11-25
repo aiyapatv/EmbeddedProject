@@ -84,25 +84,23 @@ window.toggleLight = function () {
   const button = document.getElementById("toggle-light-button");
 
   // Check current button text to decide the action
-  temp = ref(db, "data/output/waterPump");
-  console.log(temp);
-  //   if (button.innerText === "On") {
-  //     set(ref(db, "data/lightStatus"), "Off")
-  //       .then(() => {
-  //         console.log("Command sent to Firebase: On");
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error sending command to Firebase", error);
-  //       });
-  //   } else {
-  //     set(ref(db, "data/lightStatus"), "On")
-  //       .then(() => {
-  //         console.log("Command sent to Firebase: Off");
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error sending command to Firebase", error);
-  //       });
-  //   }
+  if (button.innerText === "On") {
+    set(ref(db, "data/output/lightStatus"), "Off")
+      .then(() => {
+        console.log("Command sent to Firebase: On");
+      })
+      .catch((error) => {
+        console.error("Error sending command to Firebase", error);
+      });
+  } else {
+    set(ref(db, "data/output/lightStatus"), "On")
+      .then(() => {
+        console.log("Command sent to Firebase: Off");
+      })
+      .catch((error) => {
+        console.error("Error sending command to Firebase", error);
+      });
+  }
 };
 
 window.toggleWater = function () {
