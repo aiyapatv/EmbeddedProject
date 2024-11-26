@@ -97,15 +97,16 @@ void setup() {
 }
 
 void loop() {
-  // Handle stream events 
+  // Handle stream events
   humidity = dht.readHumidity();
   temperature = dht.readTemperature();
   if (isnan(humidity) || isnan(temperature)) {
   } else {
     String humidityStr = String(humidity);
     String temperatureStr = String(temperature);
-    parseAndSendToFirebase("/humidity: " + humidityStr);
-    parseAndSendToFirebase("/temperature: " + temperatureStr);
+    parseAndSendToFirebase("/input/humidity: " + humidityStr);
+    delay(500);
+    parseAndSendToFirebase("/input/temperature: " + temperatureStr);
   }
 
   while (Serial1.available()) {
@@ -134,8 +135,25 @@ void loop() {
     Serial1.read();  // Read and discard any leftover data
   }
   if (!Firebase.readStream(firebaseData)) {
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("WiFi not connected!");
+      delay(1000);
+    }
     Serial.println("Stream error: ");
+    Serial.println("State: " + String(firebaseData.streamStatus()));
     Serial.println(firebaseData.errorReason());
+  }
+  if (Firebase.readStream(firebaseData)) {
+    if (firebaseData.streamTimeout()) {
+      Serial.println("Stream timeout detected, reconnecting...");
+      if (Firebase.beginStream(firebaseData, "/data/output")) {
+        Serial.println("Stream started successfully.");
+        Firebase.setStreamCallback(firebaseData, streamCallback, streamTimeoutCallback);
+      } else {
+        Serial.println("Could not start stream.");
+        Serial.println(firebaseData.errorReason());
+      }
+    }
   }
   delay(1000);
 }
@@ -149,9 +167,8 @@ void streamCallback(StreamData data) {
     // Parse the JSON object
     FirebaseJson* json = data.jsonObjectPtr();
     FirebaseJsonData jsonData;
-
     // Extract lightStatus
-    if (json->get(jsonData, "lightStatus")) {
+    if (json != nullptr && json->get(jsonData, "lightStatus")) {
       String lightStatus = jsonData.stringValue;
       Serial.println("Updated lightsStatus: " + lightStatus);
       if (lightStatus == "On") {
@@ -164,7 +181,7 @@ void streamCallback(StreamData data) {
     }
 
     // Extract waterPump
-    if (json->get(jsonData, "waterPump")) {
+    if (json != nullptr && json->get(jsonData, "waterPump")) {
       String waterPumpStatus = jsonData.stringValue;
       Serial.println("Updated waterPump: " + waterPumpStatus);
       Serial1.write(waterPumpStatus.c_str());  // Send the updated status to the pump
@@ -176,6 +193,10 @@ void streamCallback(StreamData data) {
 
 // Callback function for stream timeout
 void streamTimeoutCallback(bool timeout) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected. Attempting to reconnect...");
+    WiFi.reconnect();
+  }
   if (timeout) {
     Serial.println("Stream timeout, reconnecting...");
     Firebase.begin(&firebaseConfig, &firebaseAuth);

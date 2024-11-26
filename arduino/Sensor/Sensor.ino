@@ -8,6 +8,8 @@ const int pumpPin = 13;
 float water = 0;
 float moisture = 0;
 char waterPump = ' ';
+unsigned long previousMillis = 0;  // Stores the last time this section was executed
+const unsigned long interval = 5000;
 
 void setup() {
   // put your setup code here, to run once:
@@ -25,38 +27,39 @@ void loop() {
   // Read temperature as Celsius (the default)
   // temperature = dht.readTemperature();
   // Compute heat index in Celsius (isFahreheit = false)
-  while(Serial1.available()){
+  unsigned long currentMillis = millis();
+  while (Serial1.available()) {
     char c = Serial1.read();
     waterPump = c;
   }
   Serial.println(waterPump);
-  if(waterPump == '1'){
-    analogWrite(pumpPin, HIGH);
-  }else{
-    analogWrite(pumpPin, LOW);
-  }
-  moisture = analogRead(moistPin);
-  moisture = (4095 - moisture) / 4095 * 100;
-  water = digitalRead(waterPin);
-  Serial.print("/moisture: ");
-  Serial.println(moisture);
-  // Serial.print(F("Humidity: "));
-  // Serial.println(humidity);
-  // Serial.print(F("% Temperature: "));
-  // Serial.print(temperature);
-  // Serial.println(F(" C "));
-  Serial.print("/water: ");
-  Serial.println(water);
-  if (isnan(moisture) || isnan(water)) {
-    Serial.println("Failed to read from DHT sensor!");
+  if (waterPump == '1') {
+    Serial.print("Working");
+    digitalWrite(pumpPin, HIGH);
   } else {
-    String moistureStr = "/moisture: " + String(moisture);
-    String waterStr = "/water: " + String(water);
-    Serial1.flush();
-    Serial1.write(moistureStr.c_str());
-    Serial1.write("\n");  // Add a newline as a delimiter
-    Serial1.write(waterStr.c_str());
-    Serial1.write("\n");
+    Serial.print("Not Working");
+    digitalWrite(pumpPin, LOW);
   }
-  delay(5000);
+  if (currentMillis - previousMillis >= interval) {
+    // Update the previous time
+    previousMillis = currentMillis;
+    moisture = analogRead(moistPin);
+    moisture = (4095 - moisture) / 4095 * 100;
+    water = digitalRead(waterPin);
+    Serial.print("/moisture: ");
+    Serial.println(moisture);
+    Serial.print("/water: ");
+    Serial.println(water);
+    if (isnan(moisture) || isnan(water)) {
+      Serial.println("Failed to read from DHT sensor!");
+    } else {
+      String moistureStr = "/input/moisture: " + String(moisture);
+      String waterStr = "/input/water: " + String(water);
+      Serial1.flush();
+      Serial1.write(moistureStr.c_str());
+      Serial1.write("\n");  // Add a newline as a delimiter
+      Serial1.write(waterStr.c_str());
+      Serial1.write("\n");
+    }
+  }
 }
