@@ -1,162 +1,165 @@
 #include <WiFi.h>
 #include <FirebaseESP32.h>
 #include <DHT.h>
+#include <HTTPClient.h>
 
-// WiFi credentials
 const char* ssid = "Aiyapat iPhone";
 const char* password = "VervergComaL123";
 
-// Firebase credentials
 #define FIREBASE_HOST "iotlab9-874f2-default-rtdb.asia-southeast1.firebasedatabase.app"
 #define FIREBASE_AUTH "zzP7K874tmJrV2nxMnAoeUpvJIajFMZHkbYYPLeP"
 
-// Initialize Firebase ESP32
+String Web_App_URL = "https://script.google.com/macros/s/AKfycbx4LBpvQ4nIP_tuQHp5Xf9bGlDOWkVpnrQZOowO5xeaTA-dV4FiUTpJ09XRea9BaSDVmg/exec";
+
 FirebaseData firebaseData;
 FirebaseConfig firebaseConfig;
 FirebaseAuth firebaseAuth;
 
-const char* path = "/data";
-const char* statusPath = "/lightStatus";
-const char* moisturePath = "/moisture";
-const char* humidityPath = "/humidity";
-const char* tempPath = "/temperature";
-const char* waterPath = "/water";
-const char* waterPumpPath = "/waterPump";
 const int ledPin = 15;
-
 #define RXD1 (18)
 #define TXD1 (19)
-String temp = "";
-
 #define DHTPIN 4
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
+
 float temperature = 0;
 float humidity = 0;
-String waterValue = "";
-String moistureValue = "";
-String lightStatus = "";
-String waterPumpStatus = "";
-unsigned long previousMillis = 0;  // Stores the last time this section was executed
+char waterValue[10] = "";
+char moistureValue[10] = "";
+char lightStatus[5] = "";
+char waterPumpStatus[5] = "";
+
+unsigned long previousMillis = 0;
 const unsigned long interval = 1500;
+
+HTTPClient http;
 
 void setup() {
   Serial.begin(9600);
   Serial1.begin(9600, SERIAL_8N1, RXD1, TXD1);
   pinMode(ledPin, OUTPUT);
+
+  // WiFi connection
   WiFi.begin(ssid, password);
-  Serial.print("connecting");
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
     delay(500);
+    Serial.print(".");
   }
-  Serial.println();
-  Serial.print("connected: ");
-  Serial.println(WiFi.localIP());
+  Serial.println("Connected");
+
+  // Firebase initialization
   firebaseConfig.host = FIREBASE_HOST;
-  firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;  // Use legacy token
+  firebaseConfig.signer.tokens.legacy_token = FIREBASE_AUTH;
   Firebase.begin(&firebaseConfig, &firebaseAuth);
   Firebase.reconnectWiFi(true);
+
   delay(1000);
   if (Firebase.ready()) {
-    if (Firebase.getString(firebaseData, "/data/output/lightStatus")) {
-      lightStatus = firebaseData.stringData();  // Extract the string value
-      Serial.println("lightStatus: " + lightStatus);
-      if (lightStatus == "On") {
-        Serial.println("LIGHTISON");
-        digitalWrite(ledPin, HIGH);
-      } else {
-        Serial.println("LIGHTISOFF");
-        digitalWrite(ledPin, LOW);
-      }
-    } else {
-      Serial.println("Failed to get initial lightStatus: " + firebaseData.errorReason());
-    }
-    if (Firebase.getString(firebaseData, "/data/output/waterPump")) {
-      waterPumpStatus = firebaseData.stringData();
-      Serial.print("Initial waterPump: ");
-      Serial.println(waterPumpStatus);
-      Serial1.write(waterPumpStatus.c_str());  // Send initial command to pump
-    } else {
-      Serial.println("Failed to get initial waterPump: " + firebaseData.errorReason());
-    }
-  } else {
-    Serial.println("Failed to initialize Firebase.");
-  }
-  if (Firebase.beginStream(firebaseData, "/data/output/lightStatus")) {
-    Serial.println("Stream for lightStatus started.");
-  } else {
-    Serial.println("Failed to start Firebase stream for lightStatus.");
-    Serial.println(firebaseData.errorReason());
+    initializeFirebase();
   }
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   unsigned long currentMillis = millis();
+
+  // Sensor readings
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    updateSensorData();
+  }
+
+  // Process Serial1 data
+  processSerialData();
+
+  // Firebase updates
+  updateLightStatus();
+  updateWaterPumpStatus();
+}
+
+// Initialize Firebase values
+void initializeFirebase() {
+  if (Firebase.getString(firebaseData, "/data/output/lightStatus")) {
+    strncpy(lightStatus, firebaseData.stringData().c_str(), sizeof(lightStatus));
+    digitalWrite(ledPin, strcmp(lightStatus, "On") == 0 ? HIGH : LOW);
+  }
+
+  if (Firebase.getString(firebaseData, "/data/output/waterPump")) {
+    strncpy(waterPumpStatus, firebaseData.stringData().c_str(), sizeof(waterPumpStatus));
+    Serial1.write(waterPumpStatus);
+  }
+}
+
+// Update sensor data in Firebase
+void updateSensorData() {
   humidity = dht.readHumidity();
   temperature = dht.readTemperature();
+
+  if (!isnan(humidity)) {
+    Firebase.setFloat(firebaseData, "/data/input/humidity", humidity);
+  }
+  if (!isnan(temperature)) {
+    Firebase.setFloat(firebaseData, "/data/input/temperature", temperature);
+  }
+}
+
+// Process incoming Serial1 data
+void processSerialData() {
+  static char temp[50] = "";
+  static int idx = 0;
+
   while (Serial1.available()) {
     char c = Serial1.read();
     if (c != '\n') {
-      temp += c;
+      temp[idx++] = c;
+      if (idx >= sizeof(temp)) idx = 0;  // Prevent overflow
     } else {
-      int colonIndex = temp.indexOf(':');  // Find the position of ':'
-      if (colonIndex > 0) {
-        String dataPath = path + temp.substring(0, colonIndex);
-        dataPath.trim();
-        String value = temp.substring(colonIndex + 2);
-        value.trim();
-        if (dataPath == "/data/input/water" && value != waterValue) {
-          waterValue = value;
-          if (Firebase.setString(firebaseData, dataPath, value)) {
-            Serial.println("Data sent to Firebase successfully.");
-          } else {
-            Serial.println("Failed to send data to Firebase: " + firebaseData.errorReason());
-          }
-        } else if (dataPath == "/data/input/moisture" && value != moistureValue) {
-          moistureValue = value;
-          if (Firebase.setString(firebaseData, dataPath, value)) {
-            Serial.println("Data sent to Firebase successfully.");
-          } else {
-            Serial.println("Failed to send data to Firebase: " + firebaseData.errorReason());
-          }
+      temp[idx] = '\0';
+      idx = 0;
+
+      char* colon = strchr(temp, ':');
+      if (colon) {
+        *colon = '\0';
+        char* dataPath = temp;
+        char* value = colon + 2;
+
+        if (strcmp(dataPath, "/data/input/water") == 0 && strcmp(waterValue, value) != 0) {
+          strncpy(waterValue, value, sizeof(waterValue));
+          Firebase.setString(firebaseData, dataPath, waterValue);
+        } else if (strcmp(dataPath, "/data/input/moisture") == 0 && strcmp(moistureValue, value) != 0) {
+          strncpy(moistureValue, value, sizeof(moistureValue));
+          Firebase.setString(firebaseData, dataPath, moistureValue);
         }
       }
-      temp = "";
     }
   }
-  while (Serial1.available()) {
-    Serial1.read();  // Read and discard any leftover data
-  }
-  if (currentMillis - previousMillis >= interval) {
-    if (!isnan(humidity)) {
-      if (Firebase.setString(firebaseData, "/data/input/humidity", humidity)) {
-      } else {
-        Serial.println("Failed to update humid");
-        Serial.println(firebaseData.errorReason());
-      }
-    }
-    if (!isnan(temperature)) {
-      if (Firebase.setString(firebaseData, "/data/input/temperature", temperature)) {
-      } else {
-        Serial.println("Failed to update temp");
-        Serial.println(firebaseData.errorReason());
-      }
-    }
-  }
+}
+
+// Update light status
+void updateLightStatus() {
   if (Firebase.getString(firebaseData, "/data/output/lightStatus")) {
-    lightStatus = firebaseData.stringData();
-    Serial.println("lightStatus: " + lightStatus);
-    if (lightStatus == "On") {
-      digitalWrite(ledPin, HIGH);
-    } else {
-      digitalWrite(ledPin, LOW);
+    strncpy(lightStatus, firebaseData.stringData().c_str(), sizeof(lightStatus));
+    digitalWrite(ledPin, strcmp(lightStatus, "On") == 0 ? HIGH : LOW);
+  }
+}
+
+// Update water pump status
+void updateWaterPumpStatus() {
+  if (Firebase.getString(firebaseData, "/data/output/waterPump")) {
+    strncpy(waterPumpStatus, firebaseData.stringData().c_str(), sizeof(waterPumpStatus));
+    Serial1.write(waterPumpStatus);
+
+    if (strcmp(waterPumpStatus, "1") == 0) {
+      sendToWebApp();
     }
   }
-  if (Firebase.getString(firebaseData, "/data/output/waterPump")) {
-    waterPumpStatus = firebaseData.stringData();
-    Serial.println("waterPump: " + waterPumpStatus);
-    Serial1.write(waterPumpStatus.c_str());  // Send initial command to pump
-  }
+}
+
+// Send data to the web app
+void sendToWebApp() {
+  char url[200];
+  snprintf(url, sizeof(url), "%s?sts=write&humidity=%.2f&temperature=%.2f&moisture=%s&waterTank=%s",
+           Web_App_URL, humidity, temperature, moistureValue, waterValue);
+  http.begin(url);
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  http.end();
 }

@@ -47,28 +47,28 @@ onValue(plantName, (snapshot) => {
   heading.innerText = `${name}`;
 });
 
-const temperature = ref(db, "data/temperature");
+const temperature = ref(db, "data/input/temperature");
 onValue(temperature, (snapshot) => {
   const temp = snapshot.val();
   const heading = document.getElementById("temperature");
   heading.innerText = `${temp} ℃`;
 });
 
-const humidity = ref(db, "data/humidity");
+const humidity = ref(db, "data/input/humidity");
 onValue(humidity, (snapshot) => {
   const humidity = snapshot.val();
   const heading = document.getElementById("humidity");
   heading.innerText = `${humidity} %`;
 });
 
-const moisture = ref(db, "data/moisture");
+const moisture = ref(db, "data/input/moisture");
 onValue(moisture, (snapshot) => {
   const moisture = snapshot.val();
   const heading = document.getElementById("moisture");
   heading.innerText = `${moisture} %`;
 });
 
-const water = ref(db, "data/water");
+const water = ref(db, "data/input/water");
 onValue(water, (snapshot) => {
   const water = snapshot.val();
   const heading = document.getElementById("alert-header");
