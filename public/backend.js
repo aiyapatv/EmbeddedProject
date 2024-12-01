@@ -37,7 +37,7 @@ onValue(plantType, (snapshot) => {
   const heading = document.getElementById("plantTypeHeading");
   const image = document.getElementById("plantImage");
   heading.innerText = `${type}`;
-  image.src = `/image/${type}.jpg`;
+  image.src = `/image/${type}1.jpg`;
 });
 
 const plantName = ref(db, "data/plantName");
@@ -47,33 +47,38 @@ onValue(plantName, (snapshot) => {
   heading.innerText = `${name}`;
 });
 
+let temp;
+let humid;
+let moist;
+let tank;
+
 const temperature = ref(db, "data/input/temperature");
 onValue(temperature, (snapshot) => {
-  const temp = snapshot.val();
+  temp = snapshot.val();
   const heading = document.getElementById("temperature");
   heading.innerText = `${temp} ℃`;
 });
 
 const humidity = ref(db, "data/input/humidity");
 onValue(humidity, (snapshot) => {
-  const humidity = snapshot.val();
+  humid = snapshot.val();
   const heading = document.getElementById("humidity");
-  heading.innerText = `${humidity} %`;
+  heading.innerText = `${humid} %`;
 });
 
 const moisture = ref(db, "data/input/moisture");
 onValue(moisture, (snapshot) => {
-  const moisture = snapshot.val();
+  moist = snapshot.val();
   const heading = document.getElementById("moisture");
-  heading.innerText = `${moisture} %`;
+  heading.innerText = `${moist} %`;
 });
 
 const water = ref(db, "data/input/water");
 onValue(water, (snapshot) => {
-  const water = snapshot.val();
+  tank = snapshot.val();
   const heading = document.getElementById("alert-header");
-  console.log(water);
-  if (water == 1) {
+  console.log(tank);
+  if (tank == 1) {
     heading.innerText = "Water Level is Insufficient";
   } else {
     heading.innerText = "Water Level is Sufficient";
@@ -109,18 +114,29 @@ window.toggleWater = function () {
   get(value)
     .then((snapshot) => {
       if (snapshot.exists() && snapshot.val() == "0") {
-        set(ref(db, "data/output/waterPump"), "1");
-        let dotCount = 0;
-        const wateringInterval = setInterval(() => {
-          dotCount = (dotCount % 3) + 1; // Cycle through 1, 2, 3
-          button.textContent = "watering" + ".".repeat(dotCount);
-        }, 500);
-        setTimeout(() => {
-          set(ref(db, "data/output/waterPump"), "0");
-          clearInterval(wateringInterval); // Stop the interval
-          console.log("Interval cleared.");
-          button.textContent = "watering"; // Reset button text
-        }, 5000);
+        if (moist < 70) {
+          set(ref(db, "data/output/waterPump"), "1");
+          let dotCount = 0;
+          sendToWebApp();
+          const wateringInterval = setInterval(() => {
+            dotCount = (dotCount % 3) + 1; // Cycle through 1, 2, 3
+            button.textContent = "watering" + ".".repeat(dotCount);
+            if (moist > 70) {
+              set(ref(db, "data/output/waterPump"), "0");
+              clearInterval(wateringInterval); // Stop the interval
+              console.log("Condition met. Interval cleared.");
+              button.textContent = "watering"; // Reset button text
+            }
+          }, 500);
+          setTimeout(() => {
+            set(ref(db, "data/output/waterPump"), "0");
+            clearInterval(wateringInterval); // Stop the interval
+            console.log("Interval cleared.");
+            button.textContent = "watering"; // Reset button text
+          }, 1000);
+        }else{
+          console.log("Too much moisture not recommend watering");
+        }
       }
     })
     .catch((error) => {
@@ -138,6 +154,22 @@ export async function changePlantType(value) {
 
 export async function changePlantName(value) {
   set(ref(db, "data/plantName"), value);
+}
+
+async function sendToWebApp() {
+  const url = `https://script.google.com/macros/s/AKfycbwelOHea8F9G97zWfQ7CckRRRp5ziBJNtoFkvZkCtop7cMwH6h420gBjF8RJGZ7AOE01g/exec?sts=write&humidity=${humid}&temperature=${temp}&moisture=${moist}&waterTank=${tank}`;
+
+  try {
+    const response = await fetch(url, {
+      mode: "no-cors",
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    console.error("Fetch error:", error);
+  }
 }
 
 // let recognition; // Declare recognition variable

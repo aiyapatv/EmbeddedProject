@@ -108,6 +108,7 @@ button{
     position: absolute; /* Position it absolutely within the #plantNameContainer */
     right: 0; /* Align the button to the right edge of plantName */
     top: 50%; /* Center it vertically */
+    color: #344E41;
     transform: translateY(-50%); /* Adjust the button vertically to be centered */
     font-size: 16px; 
     cursor: pointer;
@@ -205,6 +206,7 @@ input {
 #toggle-light-button {
     padding: 0px;
     /* width: 100%; */
+    color: #344E41;
     width: 332px;
     height: 42px;
     display: flex;
